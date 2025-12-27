@@ -4,7 +4,7 @@
 
 > A modern catalog dashboard with search, filters, pagination, and stable data handling for real-world APIs.
 
-![Catalog Explorer UI](./docs/dashboard-screenshot.png)
+
 *Screenshot: search, filters, category pills, and card grid.*
 
 ## Screenshots
