@@ -1,93 +1,186 @@
 # Catalog Explorer React App
 
-**Business-grade content catalog UI** built with **React** and **React Query** for resilient, data-driven browsing. Designed for demo and portfolio use without proprietary or sensitive production code.
+> A modern content catalog dashboard with search, filters, pagination, and resilient data handling for real-world APIs.
 
-> A modern catalog dashboard with search, filters, pagination, and stable data handling for real-world APIs.
+[![React](https://img.shields.io/badge/React-18+-blue. svg)](https://reactjs.org/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-
-*Screenshot: search, filters, category pills, and card grid.*
+Business-grade content catalog UI built with **React** and **React Query** for data-driven browsing. Designed for demo and portfolio use. 
 
 ## Screenshots
 
 ![Catalog Explorer filters](./Content_catalog1.png)
+*Search and filter interface*
+
 ![Catalog Explorer results](./Content_Catalog2.png)
+*Content catalog grid view*
+
 ![Catalog Explorer pagination](./Content_catalog3.png)
-
-Built by Sunday Oyebiyi.
-
-## How to use
-
-- Install dependencies: `npm install`
-- Start the dev server: `npm start`
-- Open: **http://localhost:3000**
-- Optional: copy `.env.example` to `.env.local` to point at another API
+*Pagination controls*
 
 ## Features
 
-- Catalog layout with sticky top bar, left filter sidebar, and category pills.
-- Search + author filter, tag multi-select, date range, min comments, sorting controls, pagination UX, and filter summary with "Clear all".
-- URL-driven state for shareable/bookmarkable links and back/forward navigation.
-- React Query caching with retries, background refetching, and stale-while-revalidate behavior.
-- Skeleton loading, empty/error states, and footer metadata for data source + last updated time.
-- Schema validation + telemetry hooks with keyboard navigation and focus management.
+- **Catalog Layout**: Sticky top bar, left filter sidebar, and category pills
+- **Advanced Filtering**: Search, author filter, tag multi-select, date range, minimum comments
+- **Sorting & Pagination**: Flexible sorting controls with paginated results
+- **URL-Driven State**: Shareable/bookmarkable links with back/forward navigation
+- **React Query Integration**: Caching, retries, background refetching, and stale-while-revalidate
+- **Resilient UX**: Skeleton loading, empty/error states, and filter summary with "Clear all"
+- **Schema Validation**: Runtime validation with telemetry hooks
+- **Accessibility**: Keyboard navigation and focus management
 
-## Tech stack
+## Tech Stack
 
-- React (function components + hooks)
-- React Query for caching, background refetching, and retries
-- Custom URL state helpers for deep linking
-- JSON Schema (Ajv) for runtime validation
-- Jest + React Testing Library for unit and UI tests
+- **React** - Function components with hooks
+- **React Query** - Data fetching, caching, and synchronization
+- **Ajv** - JSON Schema validation
+- **Jest & React Testing Library** - Testing suite
 
-## Data source
+## Prerequisites
 
-By default the app reads from the Dev.to API for rich, real-world fields:
-`https://dev.to/api/articles?per_page=30`
-To plug in a private API, set `REACT_APP_ARTICLES_URL` in `.env.local` using `.env.example` as a template.
-When a non-Dev.to URL is set, a "Configured API" option appears in the Data Source switcher in the UI.
+- Node.js 14+ 
+- npm or yarn
 
-## Schema & validation
+## Installation
 
-The article contract lives in `src/schemas/articles.schema.json`.
-Runtime validation runs after normalization; invalid items are dropped and reported via `src/utils/telemetry.js`.
-To integrate monitoring, provide `window.__APP_MONITOR__.reportEvent(name, payload)` in your host app.
+1. Clone the repository: 
+   ```bash
+   git clone https://github.com/oyebiyisunday/react-content-catalog-dashboard.git
+   cd react-content-catalog-dashboard
+   ```
 
-## Multi-type payloads
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-If your API returns mixed schemas, send each item as `{ "type": "...", "data": { ... } }`.
+3. (Optional) Configure custom API: 
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local to set REACT_APP_ARTICLES_URL
+   ```
+
+4. Start the development server:
+   ```bash
+   npm start
+   ```
+
+5. Open your browser to [http://localhost:3000](http://localhost:3000)
+
+## Configuration
+
+### Data Source
+
+By default, the app fetches from the [Dev.to API](https://dev.to/api/articles):
+```
+https://dev.to/api/articles?per_page=30
+```
+
+To use a custom API, create `.env.local`:
+
+```bash
+REACT_APP_ARTICLES_URL=https://your-api.com/articles
+```
+
+When configured, a "Configured API" option appears in the Data Source switcher. 
+
+### Multi-Type Payloads
+
+For APIs returning mixed schemas, format items as: 
+
+```json
+{
+  "type": "article",
+  "data": { ...  }
+}
+```
+
 Supported types: `article`, `devto`. Unknown types are ignored and reported via telemetry.
 
-## Hiring Manager View
+## Project Structure
 
-- Scalable, data-driven catalog UI with complex UI state management.
-- Shareable + bookmarkable URLs through URL-driven state.
-- Fault-tolerant API consumption with caching, retries, and stale-while-revalidate behavior.
-- Searchable, filterable, sortable lists with pagination UX.
-- Resilient UX with skeleton loading, empty/error states, and refresh controls.
-- Hardening against schema drift through normalization, validation, and telemetry.
+```text
+src/
+├── components/    # UI components (layout, filters, cards, pagination, skeletons)
+├── hooks/         # Custom hooks (data fetching, URL state management)
+├── utils/         # Utilities (normalization, sorting, telemetry, validation)
+└── schemas/       # JSON schemas for data validation
+```
+
+## Schema & Validation
+
+The article contract is defined in `src/schemas/articles.schema.json`.
+
+Runtime validation occurs after normalization. Invalid items are dropped and reported via `src/utils/telemetry.js`.
+
+To integrate monitoring, provide: 
+
+```javascript
+window.__APP_MONITOR__.reportEvent(name, payload)
+```
 
 ## Testing
 
-The test suite covers normalization/sorting logic and schema validation.
-Key UI rendering states (loading, empty, error) are verified with React Testing Library.
+The test suite covers:
+- Normalization and sorting logic
+- Schema validation
+- UI rendering states (loading, empty, error)
 
-Run tests with:
+Run tests: 
 
 ```bash
 npm test
 ```
 
-## Project structure
+Run with coverage:
 
-```text
-src/
-  components/  # UI layout, filters, cards, pagination, skeletons
-  hooks/       # data fetching + URL state
-  utils/       # normalization, sorting, telemetry, schema validation
-  schemas/     # JSON schema for the normalized article contract
+```bash
+npm test -- --coverage
 ```
 
-## Notes
+## Development Highlights
 
-The UI assumes each item can map to a normalized article shape.
-Add your internal API URL in `.env.local` to use production-like data locally.
+Built to demonstrate: 
+
+- ✅ Scalable, data-driven catalog UI with complex state management
+- ✅ URL-driven state for shareable/bookmarkable links
+- ✅ Fault-tolerant API consumption with caching and retries
+- ✅ Advanced search, filter, and sort capabilities
+- ✅ Resilient UX with proper loading and error states
+- ✅ Schema validation and telemetry for production readiness
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Sunday Oyebiyi**
+
+- GitHub: [@oyebiyisunday](https://github.com/oyebiyisunday)
+
+## Acknowledgments
+
+- Data provided by [Dev.to API](https://developers.forem.com/api)
+- Built with [React](https://reactjs.org/) and [React Query](https://tanstack.com/query)
+
+---
+
+*Built for portfolio and demonstration purposes. Not affiliated with or endorsed by production systems.*
