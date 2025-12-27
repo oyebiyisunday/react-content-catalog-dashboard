@@ -7,6 +7,12 @@
 ![Catalog Explorer UI](./docs/dashboard-screenshot.png)
 *Screenshot: search, filters, category pills, and card grid.*
 
+## Screenshots
+
+![Catalog Explorer filters](./Content_catalog1.png)
+![Catalog Explorer results](./Content_Catalog2.png)
+![Catalog Explorer pagination](./Content_catalog3.png)
+
 Built by Sunday Oyebiyi.
 
 ## How to use
