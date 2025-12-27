@@ -251,15 +251,48 @@ function matchesQuery(article, query) {
   );
 }
 
+function matchesTags(article, tags) {
+  if (!Array.isArray(tags) || tags.length === 0) return true;
+  const loweredTags = tags.map((tag) => String(tag).toLowerCase());
+  const articleTags = Array.isArray(article?.tags) ? article.tags : [];
+  return articleTags.some((tag) =>
+    loweredTags.includes(String(tag).toLowerCase())
+  );
+}
+
+function matchesMinComments(article, minComments) {
+  if (!Number.isFinite(minComments) || minComments <= 0) return true;
+  return getCommentCount(article) >= minComments;
+}
+
+function matchesDateRange(article, range) {
+  if (!range || range === "all") return true;
+  const days = Number.parseInt(range, 10);
+  if (!Number.isFinite(days) || days <= 0) return true;
+  const dateValue = new Date(getArticleDate(article));
+  if (Number.isNaN(dateValue.getTime())) return false;
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  return dateValue.getTime() >= cutoff;
+}
+
 function matchesAuthor(article, author) {
   if (!author || author === "all") return true;
   return (article?.author?.name || "").toLowerCase() === author.toLowerCase();
 }
 
-export function filterAndSortArticles(articles, { q, author, sort }) {
+export function filterAndSortArticles(
+  articles,
+  { q, author, sort, tags, minComments, range }
+) {
   const filtered = articles.filter((article) => {
     if (!article) return false;
-    return matchesQuery(article, q) && matchesAuthor(article, author);
+    return (
+      matchesQuery(article, q) &&
+      matchesAuthor(article, author) &&
+      matchesTags(article, tags) &&
+      matchesMinComments(article, minComments) &&
+      matchesDateRange(article, range)
+    );
   });
 
   const compare = (a, b) => {

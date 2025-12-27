@@ -167,3 +167,69 @@ test("returns per-source sort options", () => {
   );
   expect(configuredSorts).toEqual(["newest", "oldest", "title", "author"]);
 });
+
+test("filters by tags and minimum comments", () => {
+  const articles = [
+    {
+      id: 1,
+      title: "React tips",
+      author: { name: "A" },
+      tags: ["react", "webdev"],
+      comment_count: 2,
+      date: "2024-01-01T10:00:00Z",
+    },
+    {
+      id: 2,
+      title: "Testing guide",
+      author: { name: "B" },
+      tags: ["testing"],
+      comment_count: 10,
+      date: "2024-01-02T10:00:00Z",
+    },
+  ];
+
+  const filtered = filterAndSortArticles(articles, {
+    q: "",
+    author: "all",
+    sort: "newest",
+    tags: ["testing", "react"],
+    minComments: 5,
+    range: "all",
+  });
+  expect(filtered.map((item) => item.id)).toEqual([2]);
+});
+
+test("filters by date range", () => {
+  const nowSpy = jest
+    .spyOn(Date, "now")
+    .mockReturnValue(new Date("2024-02-01T00:00:00Z").getTime());
+
+  const articles = [
+    {
+      id: 1,
+      title: "Old post",
+      author: { name: "A" },
+      comment_count: 1,
+      date: "2023-12-01T10:00:00Z",
+    },
+    {
+      id: 2,
+      title: "Recent post",
+      author: { name: "B" },
+      comment_count: 1,
+      date: "2024-01-15T10:00:00Z",
+    },
+  ];
+
+  const filtered = filterAndSortArticles(articles, {
+    q: "",
+    author: "all",
+    sort: "newest",
+    tags: [],
+    minComments: 0,
+    range: "30",
+  });
+  expect(filtered.map((item) => item.id)).toEqual([2]);
+
+  nowSpy.mockRestore();
+});

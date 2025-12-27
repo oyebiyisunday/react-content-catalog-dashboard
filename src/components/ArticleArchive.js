@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ArticleList from "./ArticleList";
 import ArticleSkeleton from "./ArticleSkeleton";
-import FeaturedShelf from "./FeaturedShelf";
 import Pagination from "./Pagination";
 import SideFilterPanel from "./SideFilterPanel";
 import { useArticlesQuery } from "../hooks/useArticles";
@@ -23,9 +22,32 @@ import {
 
 const PAGE_SIZE = 12;
 const LIST_ID = "results-list";
-const BASE_FILTERS = { q: "", author: "all", sort: "newest", page: 1 };
+const BASE_FILTERS = {
+  q: "",
+  author: "all",
+  sort: "newest",
+  page: 1,
+  range: "all",
+  minComments: 0,
+  tags: [],
+};
+const RANGE_OPTIONS = [
+  { value: "all", label: "All time" },
+  { value: "7", label: "Last 7 days" },
+  { value: "30", label: "Last 30 days" },
+  { value: "90", label: "Last 90 days" },
+];
+const MIN_COMMENT_OPTIONS = [
+  { value: 0, label: "Any" },
+  { value: 1, label: "1+" },
+  { value: 5, label: "5+" },
+  { value: 10, label: "10+" },
+  { value: 25, label: "25+" },
+];
 const ALLOWED_SOURCES = DATA_SOURCES.map((source) => source.id);
 const ALLOWED_SORTS = SORT_OPTIONS.map((option) => option.value);
+const ALLOWED_RANGES = RANGE_OPTIONS.map((option) => option.value);
+const ALLOWED_MIN_COMMENTS = MIN_COMMENT_OPTIONS.map((option) => option.value);
 
 function formatUpdatedAt(timestamp) {
   if (!timestamp) return "Not updated yet";
@@ -37,28 +59,66 @@ function formatUpdatedAt(timestamp) {
   }).format(date);
 }
 
+function toggleTagSelection(currentTags, tag) {
+  const normalized = String(tag);
+  const lowered = normalized.toLowerCase();
+  const safeTags = Array.isArray(currentTags) ? currentTags : [];
+  const exists = safeTags.some(
+    (item) => String(item).toLowerCase() === lowered
+  );
+  if (exists) {
+    return safeTags.filter((item) => String(item).toLowerCase() !== lowered);
+  }
+  return [...safeTags, normalized];
+}
+
+function formatRangeLabel(range) {
+  const option = RANGE_OPTIONS.find((item) => item.value === range);
+  return option ? option.label : `Last ${range} days`;
+}
+
+function safeLocalStorageGet(key) {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch (error) {
+    return null;
+  }
+}
+
+function safeLocalStorageSet(key, value) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch (error) {
+    // Ignore storage failures (privacy mode or denied access).
+  }
+}
+
 export default function ArticleArchive() {
   const defaultFilters = useMemo(() => {
     if (typeof window === "undefined") {
-      return { ...BASE_FILTERS, source: DEFAULT_SOURCE_ID };
+      return { ...BASE_FILTERS, tags: [], source: DEFAULT_SOURCE_ID };
     }
-    const stored = window.localStorage.getItem(DATA_SOURCE_STORAGE_KEY);
+    const stored = safeLocalStorageGet(DATA_SOURCE_STORAGE_KEY);
     const safeStored = ALLOWED_SOURCES.includes(stored)
       ? stored
       : DEFAULT_SOURCE_ID;
-    return { ...BASE_FILTERS, source: safeStored };
+    return { ...BASE_FILTERS, tags: [], source: safeStored };
   }, []);
 
   const [filters, setFilters] = useUrlState(defaultFilters, {
     allowedSorts: ALLOWED_SORTS,
     allowedSources: ALLOWED_SOURCES,
+    allowedRanges: ALLOWED_RANGES,
+    allowedMinComments: ALLOWED_MIN_COMMENTS,
   });
-  const { q, author, sort, page, source } = filters;
+  const { q, author, sort, page, source, range, minComments, tags } = filters;
+  const selectedTags = Array.isArray(tags) ? tags : [];
   const sortOptionsForSource = useMemo(
     () => getSortOptionsForSource(source),
     [source]
   );
-  const normalizedQuery = q.trim().toLowerCase();
   const sortLabel = useMemo(() => {
     return (
       SORT_OPTIONS.find((option) => option.value === sort)?.label ||
@@ -76,8 +136,23 @@ export default function ArticleArchive() {
     if (sort && sort !== BASE_FILTERS.sort) {
       items.push({ key: "sort", label: `Sort: ${sortLabel}` });
     }
+    if (range && range !== BASE_FILTERS.range) {
+      items.push({ key: "range", label: `Date: ${formatRangeLabel(range)}` });
+    }
+    if (Number.isFinite(minComments) && minComments > 0) {
+      items.push({
+        key: "minComments",
+        label: `Min comments: ${minComments}`,
+      });
+    }
+    if (selectedTags.length > 0) {
+      items.push({
+        key: "tags",
+        label: `Tags: ${selectedTags.join(", ")}`,
+      });
+    }
     return items;
-  }, [author, q, sort, sortLabel]);
+  }, [author, minComments, q, range, selectedTags, sort, sortLabel]);
   const hasActiveFilters = activeFilters.length > 0;
 
   const activeSource =
@@ -114,10 +189,26 @@ export default function ArticleArchive() {
   }, [q, searchValue, setFilters]);
 
   const authors = useMemo(() => getUniqueAuthors(articles), [articles]);
-  const topTags = useMemo(
-    () => getTopTags(articles, 8).filter((tag) => tag.toLowerCase() !== "ai"),
-    [articles]
-  );
+  const topTags = useMemo(() => {
+    const tagsList = getTopTags(articles, 16);
+    return tagsList.filter((tag) => String(tag).toLowerCase() !== "ai");
+  }, [articles]);
+  const tagOptions = useMemo(() => {
+    const seen = new Set();
+    const merged = [];
+    const addTag = (tag) => {
+      const normalized = String(tag);
+      const lowered = normalized.toLowerCase();
+      if (lowered === "ai") return;
+      if (seen.has(lowered)) return;
+      seen.add(lowered);
+      merged.push(normalized);
+    };
+    selectedTags.forEach(addTag);
+    topTags.forEach(addTag);
+    return merged;
+  }, [selectedTags, topTags]);
+  const categoryTags = useMemo(() => topTags.slice(0, 8), [topTags]);
   const matchedAuthor = useMemo(() => {
     if (!author || author === "all") return "all";
     const lowered = author.toLowerCase();
@@ -125,8 +216,16 @@ export default function ArticleArchive() {
   }, [author, authors]);
 
   const filtered = useMemo(
-    () => filterAndSortArticles(articles, { q, author, sort }),
-    [articles, q, author, sort]
+    () =>
+      filterAndSortArticles(articles, {
+        q,
+        author,
+        sort,
+        range,
+        minComments,
+        tags: selectedTags,
+      }),
+    [articles, author, minComments, q, range, selectedTags, sort]
   );
 
   const totalCount = filtered.length;
@@ -147,9 +246,7 @@ export default function ArticleArchive() {
   }, [currentPage, page, setFilters]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(DATA_SOURCE_STORAGE_KEY, source);
-    }
+    safeLocalStorageSet(DATA_SOURCE_STORAGE_KEY, source);
   }, [source]);
 
   useEffect(() => {
@@ -179,7 +276,17 @@ export default function ArticleArchive() {
       resultsHeadingRef.current.focus();
       shouldFocusResultsRef.current = false;
     }
-  }, [author, currentPage, q, sort, source, totalCount]);
+  }, [
+    author,
+    currentPage,
+    minComments,
+    q,
+    range,
+    selectedTags,
+    sort,
+    source,
+    totalCount,
+  ]);
 
   const handleSearchChange = useCallback((event) => {
     setSearchValue(event.target.value);
@@ -224,14 +331,34 @@ export default function ArticleArchive() {
   const handleReset = useCallback(() => {
     shouldFocusResultsRef.current = true;
     setSearchValue("");
-    setFilters({ ...BASE_FILTERS });
+    setFilters({ ...BASE_FILTERS, tags: [] });
   }, [setFilters]);
 
-  const handleTagSelect = useCallback(
+  const handleTagToggle = useCallback(
     (tag) => {
       shouldFocusResultsRef.current = true;
-      setSearchValue(tag);
-      setFilters({ q: tag, page: 1 });
+      const nextTags = toggleTagSelection(selectedTags, tag);
+      setFilters({ tags: nextTags, page: 1 });
+    },
+    [selectedTags, setFilters]
+  );
+
+  const handleRangeChange = useCallback(
+    (event) => {
+      shouldFocusResultsRef.current = true;
+      setFilters({ range: event.target.value, page: 1 });
+    },
+    [setFilters]
+  );
+
+  const handleMinCommentsChange = useCallback(
+    (event) => {
+      const nextValue = Number.parseInt(event.target.value, 10);
+      shouldFocusResultsRef.current = true;
+      setFilters({
+        minComments: Number.isFinite(nextValue) ? nextValue : 0,
+        page: 1,
+      });
     },
     [setFilters]
   );
@@ -250,7 +377,6 @@ export default function ArticleArchive() {
   const showInitialLoading = isLoading && !hasData;
   const showErrorState = isError && !hasData;
   const updatedLabel = formatUpdatedAt(dataUpdatedAt);
-  const featuredArticles = useMemo(() => filtered.slice(0, 3), [filtered]);
   const resultsLabel = q ? `Results for "${q}"` : "Catalog results";
 
   return (
@@ -310,6 +436,15 @@ export default function ArticleArchive() {
             onAuthorChange={handleAuthorChange}
             onSortChange={handleSortChange}
             onReset={handleReset}
+            range={range}
+            onRangeChange={handleRangeChange}
+            minComments={minComments}
+            onMinCommentsChange={handleMinCommentsChange}
+            tags={selectedTags}
+            tagOptions={tagOptions}
+            onTagToggle={handleTagToggle}
+            rangeOptions={RANGE_OPTIONS}
+            minCommentOptions={MIN_COMMENT_OPTIONS}
             listId={LIST_ID}
           />
           <div className="catalog-main">
@@ -327,27 +462,31 @@ export default function ArticleArchive() {
               </div>
             ) : (
               <>
-                {topTags.length > 0 && (
-                  <div className="category-row" aria-label="Popular categories">
-                    <span className="category-label">Categories</span>
-                    <div
-                      className="category-pills"
-                      aria-label="Category filters"
-                    >
-                      {topTags.map((tag) => {
-                        const isActive = normalizedQuery === tag.toLowerCase();
-                        return (
-                          <button
-                            key={tag}
-                            type="button"
-                            className={`tag-pill tag-pill--compact${
-                              isActive ? " is-active" : ""
-                            }`}
-                            onClick={() => handleTagSelect(tag)}
-                            aria-pressed={isActive}
-                          >
-                            {tag}
-                          </button>
+              {categoryTags.length > 0 && (
+                <div className="category-row" aria-label="Popular categories">
+                  <span className="category-label">Categories</span>
+                  <div
+                    className="category-pills"
+                    aria-label="Category filters"
+                  >
+                    {categoryTags.map((tag) => {
+                      const isActive = selectedTags.some(
+                        (item) =>
+                          String(item).toLowerCase() ===
+                          String(tag).toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={`tag-pill tag-pill--compact${
+                            isActive ? " is-active" : ""
+                          }`}
+                          onClick={() => handleTagToggle(tag)}
+                          aria-pressed={isActive}
+                        >
+                          {tag}
+                        </button>
                         );
                       })}
                     </div>
@@ -377,9 +516,6 @@ export default function ArticleArchive() {
                     Clear all
                   </button>
                 </div>
-                {!showInitialLoading && featuredArticles.length > 0 && (
-                  <FeaturedShelf articles={featuredArticles} />
-                )}
                 <div className="status-bar">
                   <div className="status-left">
                     <h2

@@ -12,6 +12,15 @@ export default function SideFilterPanel({
   onAuthorChange,
   onSortChange,
   onReset,
+  range = "all",
+  onRangeChange,
+  minComments = 0,
+  onMinCommentsChange,
+  tags = [],
+  tagOptions = [],
+  onTagToggle,
+  rangeOptions = [],
+  minCommentOptions = [],
   listId,
   isOpen = true,
 }) {
@@ -52,6 +61,31 @@ export default function SideFilterPanel({
         </details>
 
         <details className="side-panel__group" open>
+          <summary id="filter-range">Date range</summary>
+          <div
+            className="side-panel__content"
+            role="group"
+            aria-labelledby="filter-range"
+          >
+            <label htmlFor="sidebar-range-select" className="sr-only">
+              Date range
+            </label>
+            <select
+              id="sidebar-range-select"
+              value={range}
+              onChange={onRangeChange}
+              aria-controls={listId}
+            >
+              {rangeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        <details className="side-panel__group" open>
           <summary id="filter-author">Author</summary>
           <div
             className="side-panel__content"
@@ -71,6 +105,31 @@ export default function SideFilterPanel({
               {authors.map((name) => (
                 <option key={name} value={name}>
                   {name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </details>
+
+        <details className="side-panel__group" open>
+          <summary id="filter-comments">Popularity</summary>
+          <div
+            className="side-panel__content"
+            role="group"
+            aria-labelledby="filter-comments"
+          >
+            <label htmlFor="sidebar-comments-select" className="sr-only">
+              Minimum comments
+            </label>
+            <select
+              id="sidebar-comments-select"
+              value={minComments}
+              onChange={onMinCommentsChange}
+              aria-controls={listId}
+            >
+              {minCommentOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
@@ -99,6 +158,37 @@ export default function SideFilterPanel({
                 </option>
               ))}
             </select>
+          </div>
+        </details>
+
+        <details className="side-panel__group" open>
+          <summary id="filter-tags">Tags</summary>
+          <div
+            className="side-panel__content side-panel__taglist"
+            role="group"
+            aria-labelledby="filter-tags"
+          >
+            {tagOptions.length === 0 ? (
+              <span className="side-panel__empty">No tags yet</span>
+            ) : (
+              tagOptions.map((tag) => {
+                const lowered = String(tag).toLowerCase();
+                const isChecked = tags.some(
+                  (item) => String(item).toLowerCase() === lowered
+                );
+                return (
+                  <label key={tag} className="side-panel__check">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => onTagToggle?.(tag)}
+                      aria-controls={listId}
+                    />
+                    <span>{tag}</span>
+                  </label>
+                );
+              })
+            )}
           </div>
         </details>
       </div>

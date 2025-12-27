@@ -19,7 +19,7 @@ Built by Sunday Oyebiyi.
 ## Features
 
 - Catalog layout with sticky top bar, left filter sidebar, and category pills.
-- Search + author filter, sorting controls, pagination UX, and filter summary with "Clear all".
+- Search + author filter, tag multi-select, date range, min comments, sorting controls, pagination UX, and filter summary with "Clear all".
 - URL-driven state for shareable/bookmarkable links and back/forward navigation.
 - React Query caching with retries, background refetching, and stale-while-revalidate behavior.
 - Skeleton loading, empty/error states, and footer metadata for data source + last updated time.
@@ -85,4 +85,3 @@ src/
 
 The UI assumes each item can map to a normalized article shape.
 Add your internal API URL in `.env.local` to use production-like data locally.
-
