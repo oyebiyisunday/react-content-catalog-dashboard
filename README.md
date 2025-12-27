@@ -9,13 +9,13 @@ Business-grade content catalog UI built with **React** and **React Query** for d
 
 ## Screenshots
 
-![Catalog Explorer filters](./Content_catalog1.png)
+![Catalog Explorer filters](./docs/Content_catalog1.png)
 *Search and filter interface*
 
-![Catalog Explorer results](./Content_Catalog2.png)
+![Catalog Explorer results](./docs/Content_Catalog2.png)
 *Content catalog grid view*
 
-![Catalog Explorer pagination](./Content_catalog3.png)
+![Catalog Explorer pagination](./docs/Content_catalog3.png)
 *Pagination controls*
 
 ## Features
