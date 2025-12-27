@@ -1,0 +1,16 @@
+node_modules/
+build/
+dist/
+.env
+.env.local
+npm-debug.log
+yarn-error.log
+package-lock.json
+.DS_Store
+.vscode/
+coverage/
+.idea/
+*.log
+/public/build/
+/.parcel-cache/
+/.cache/

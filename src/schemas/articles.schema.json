@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/articles.schema.v1.json",
+  "title": "ArticleList",
+  "type": "array",
+  "items": { "$ref": "#/$defs/article" },
+  "$defs": {
+    "article": {
+      "type": "object",
+      "required": ["id", "title", "url", "comment_count", "author"],
+      "properties": {
+        "id": {
+          "oneOf": [{ "type": "integer" }, { "type": "string" }]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1
+        },
+        "comment_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "author": {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "avatar": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "thumbnail": {
+          "type": ["object", "null"],
+          "properties": {
+            "location": {
+              "type": "string"
+            },
+            "images": {
+              "type": "object",
+              "required": ["small"],
+              "properties": {
+                "small": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "additionalProperties": true
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

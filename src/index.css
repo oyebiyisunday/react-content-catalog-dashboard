@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;500;600&display=swap");
+
+:root {
+  --surface: #ffffff;
+  --surface-muted: #f1f3f8;
+  --border: #e1e6f2;
+  --text: #1f1b18;
+  --muted: #6b5f56;
+  --accent: #c8102e;
+  --accent-dark: #a10d24;
+  --accent-soft: rgba(200, 16, 46, 0.15);
+  --nav-blue: #0b61d8;
+  --nav-blue-dark: #084aa8;
+  --nav-blue-darker: #063b84;
+  --nav-blue-soft: #eaf2ff;
+  --nav-blue-border: #d2def8;
+  --font-display: "Oswald", "Franklin Gothic Medium", sans-serif;
+  --font-body: "Source Sans 3", "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: #f4f6fb;
+  background-image: radial-gradient(
+      circle at top right,
+      rgba(11, 97, 216, 0.12),
+      transparent 45%
+    ),
+    linear-gradient(135deg, #f6f8fd 0%, #f2f5fb 50%, #f4f6fb 100%);
+  color: var(--text);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(11, 97, 216, 0.6);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  white-space: nowrap;
+}
