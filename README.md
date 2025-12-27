@@ -183,4 +183,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-*Built for portfolio and demonstration purposes. Not affiliated with or endorsed by production systems.*
+
